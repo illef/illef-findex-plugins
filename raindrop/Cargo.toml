@@ -1,0 +1,22 @@
+[package]
+name = "findex-raindrop"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+crate-type = ["cdylib"]
+
+[dependencies]
+abi_stable = "0.11.1"
+findex-plugin = "0.8.2"
+regex = "1.7.0"
+ureq = { version = "2.10.1", features = ["json"] }
+serde = { version = "1.0", features = ["derive"] }
+fake = { version = "2.9.2", features = ["derive"] }
+thiserror = "1.0.63"
+toml = "0.8.19"
+chrono = "0.4.38"
+shellexpand = "3.1.0"
+
+[dev-dependencies]
+tempfile = "3.2"
