@@ -31,8 +31,6 @@ pub struct Item {
     #[serde(rename = "lastUpdate")]
     pub last_update: String,
     pub domain: String,
-    #[serde(rename = "creatorRef")]
-    pub creator_ref: CreatorRef,
     pub sort: i32,
     #[serde(rename = "collectionId")]
     pub collection_id: i32,
