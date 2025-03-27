@@ -4,7 +4,6 @@ use abi_stable::std_types::*;
 use bibtex_loader::{BibTexLoader, ZoteroItem};
 use findex_plugin::{define_plugin, ApplicationCommand, FResult};
 use shellexpand::tilde;
-use std::process::Command;
 
 fn init(_: &RHashMap<RString, RString>) -> RResult<(), RString> {
     ROk(())
