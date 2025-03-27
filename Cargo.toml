@@ -1,5 +1,5 @@
 [workspace]
 
 members = [
-    "raindrop", "translator", "zotero",
+    "raindrop", "translator", "zotero", "unicode_picker"
 ]
