@@ -37,6 +37,21 @@ impl Symbol {
             Symbol::new("∾", "inverted lazy S"),
             Symbol::new("⁓", "swung dash"),
             Symbol::new("✔", "check mark"),
+            Symbol::new("✕", "multiplication x"),
+            Symbol::new("Ꮺ", "cherokee letter wv"),
+            Symbol::new("ᔕ", "canadian syllabics sha"),
+            Symbol::new("∮", "contour integral"),
+            Symbol::new("ᝢ", "hanunoo letter la"),
+            Symbol::new("ᓬ", "canadian syllabics l"),
+            Symbol::new("ៜ", "khmer symbol lek too"),
+            Symbol::new("ᨐ", "tai tham letter high ha"),
+            Symbol::new("ᨏ", "tai tham letter high da"),
+            Symbol::new("᯼", "buginese vowel sign e"),
+            Symbol::new("᯽", "buginese vowel sign o"),
+            Symbol::new("᯾", "buginese vowel sign ae"),
+            Symbol::new("❖", "black diamond"),
+            Symbol::new("⸎", "left low paraphrase bracket"),
+            Symbol::new("⸾", "dashed overline"),
         ]
     }
 }
