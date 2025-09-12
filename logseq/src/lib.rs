@@ -4,6 +4,8 @@ mod logseq;
 use abi_stable::std_types::*;
 use cache::FilePageCache;
 use findex_plugin::{define_plugin, ApplicationCommand, FResult};
+use rand::rng;
+use rand::seq::SliceRandom;
 use std::{thread, time::Duration};
 
 fn init(_: &RHashMap<RString, RString>) -> RResult<(), RString> {
@@ -25,8 +27,29 @@ fn handle_query(query: RStr) -> RVec<FResult> {
     let cache = FilePageCache::default();
 
     match cache.load_cache() {
-        Ok(pages) => {
-            let filtered_pages: Vec<_> = pages
+        Ok(mut pages) => {
+            // Sort pages by updated_at in descending order (most recent first)
+            pages.sort_by(|a, b| match (a.updated_at, b.updated_at) {
+                (Some(a_time), Some(b_time)) => b_time.cmp(&a_time),
+                (Some(_), None) => std::cmp::Ordering::Less,
+                (None, Some(_)) => std::cmp::Ordering::Greater,
+                (None, None) => std::cmp::Ordering::Equal,
+            });
+
+            // Take top 5 most recently updated pages and shuffle the rest
+            let pages_len = pages.len();
+            let split_index = if pages_len > 5 { 5 } else { pages_len };
+
+            let (recent_pages, remaining_pages) = pages.split_at_mut(split_index);
+
+            // Shuffle the remaining pages
+            remaining_pages.shuffle(&mut rng());
+
+            // Combine recent pages (first 5) with shuffled remaining pages
+            let mut sorted_pages = recent_pages.to_vec();
+            sorted_pages.extend_from_slice(remaining_pages);
+
+            let filtered_pages: Vec<_> = sorted_pages
                 .into_iter()
                 .filter(|page| {
                     if search_term.is_empty() {
