@@ -47,6 +47,10 @@ $ npx @logseq/cli query illef2 '[:find (pull ?b [:db/id :block/title]) :where [?
 - Page node title을 가져와 리스트로 표시한다
 - 해당 페이지를 선택해도 아무 동작도 하지 않게 한다
 
+## Task2
+- 선택된 Page를 open한다
+ - run `open logseq://graph/illef2?page=<uuid>`
+
 
 ## References
 - https://github.com/logseq/logseq/tree/master/deps/cli

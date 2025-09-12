@@ -36,8 +36,8 @@ fn get_logseq_pages() -> Result<Vec<LogseqPage>, String> {
         ));
     }
 
-    let json_str = String::from_utf8(output.stdout)
-        .map_err(|e| format!("Invalid UTF-8 in output: {}", e))?;
+    let json_str =
+        String::from_utf8(output.stdout).map_err(|e| format!("Invalid UTF-8 in output: {}", e))?;
 
     // Parse JSON string to our structs
     let blocks: Vec<LogseqBlock> =
@@ -109,10 +109,11 @@ fn handle_query(query: RStr) -> RVec<FResult> {
                         };
 
                         FResult {
-                            cmd: ApplicationCommand::Command(RString::from(
-                                "echo 'No action configured'",
-                            )),
-                            icon: RString::from("📄"),
+                            cmd: ApplicationCommand::Command(RString::from(format!(
+                                "bash -c 'xdg-open logseq://graph/illef2?page={}'",
+                                page.uuid
+                            ))),
+                            icon: RString::from("terminal"),
                             score: isize::MAX,
                             name: RString::from(page.title),
                             desc,
@@ -152,9 +153,10 @@ fn handle_query(query: RStr) -> RVec<FResult> {
                                 };
 
                                 FResult {
-                                    cmd: ApplicationCommand::Command(RString::from(
-                                        "echo 'No action configured'",
-                                    )),
+                                    cmd: ApplicationCommand::Command(RString::from(format!(
+                                        "open 'logseq://graph/illef2?page={}'",
+                                        page.uuid
+                                    ))),
                                     icon: RString::from("📄"),
                                     score: isize::MAX,
                                     name: RString::from(page.title),
