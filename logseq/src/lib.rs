@@ -1,74 +1,14 @@
 mod cache;
+mod logseq;
 
 use abi_stable::std_types::*;
-use cache::{FilePageCache, LogseqPage};
+use cache::FilePageCache;
 use findex_plugin::{define_plugin, ApplicationCommand, FResult};
-use serde::{Deserialize, Serialize};
-use std::{process::Command, thread, time::Duration};
-
-#[derive(Debug, Deserialize, Serialize)]
-struct LogseqBlock {
-    #[serde(rename = "block/title")]
-    title: Option<String>,
-    #[serde(rename = "block/uuid")]
-    uuid: Option<String>,
-    #[serde(rename = "block/tags")]
-    tags: Option<Vec<TagRef>>,
-}
-
-#[derive(Debug, Deserialize, Serialize)]
-struct TagRef {
-    #[serde(rename = "db/id")]
-    id: Option<i64>,
-}
-
-fn get_logseq_pages() -> Result<Vec<LogseqPage>, String> {
-    let output = Command::new("bash")
-        .arg("-c")
-        .arg("npx @logseq/cli query illef2 '[:find (pull ?b [:block/tags :block/uuid :block/title]) :where [?tag :block/name \"page\"] [?b :block/tags ?tag]]' | jet --to json")
-        .output()
-        .map_err(|e| format!("Failed to execute command: {}", e))?;
-
-    if !output.status.success() {
-        return Err(format!(
-            "Command failed: {}",
-            String::from_utf8_lossy(&output.stderr)
-        ));
-    }
-
-    let json_str =
-        String::from_utf8(output.stdout).map_err(|e| format!("Invalid UTF-8 in output: {}", e))?;
-
-    // Parse JSON string to our structs
-    let blocks: Vec<LogseqBlock> =
-        serde_json::from_str(&json_str).map_err(|e| format!("Failed to parse JSON: {}", e))?;
-
-    let mut pages: Vec<LogseqPage> = blocks
-        .into_iter()
-        .map(|block| {
-            let title = block.title.unwrap_or_else(|| "Untitled".to_string());
-            let uuid = block.uuid.unwrap_or_default();
-            let tags = block
-                .tags
-                .unwrap_or_default()
-                .into_iter()
-                .filter_map(|tag_ref| tag_ref.id.map(|id| format!("tag-{}", id)))
-                .collect();
-
-            LogseqPage { title, uuid, tags }
-        })
-        .collect();
-
-    use rand::rng;
-    use rand::seq::SliceRandom;
-    pages.shuffle(&mut rng());
-
-    Ok(pages)
-}
+use std::{thread, time::Duration};
 
 fn init(_: &RHashMap<RString, RString>) -> RResult<(), RString> {
     thread::spawn(move || loop {
-        if let Ok(pages) = get_logseq_pages() {
+        if let Ok(pages) = logseq::get_logseq_pages() {
             let cache = FilePageCache::default();
             if let Err(e) = cache.update_cache(pages) {
                 eprintln!("Failed to update logseq cache: {}", e);
