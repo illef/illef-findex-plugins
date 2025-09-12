@@ -113,7 +113,7 @@ fn handle_query(query: RStr) -> RVec<FResult> {
                                 "bash -c 'xdg-open logseq://graph/illef2?page={}'",
                                 page.uuid
                             ))),
-                            icon: RString::from("terminal"),
+                            icon: RString::from("logseq"),
                             score: isize::MAX,
                             name: RString::from(page.title),
                             desc,
@@ -122,59 +122,7 @@ fn handle_query(query: RStr) -> RVec<FResult> {
                     .collect::<Vec<_>>(),
             )
         }
-        Err(_) => {
-            // Fallback to direct query if cache fails
-            match get_logseq_pages() {
-                Ok(pages) => {
-                    let filtered_pages: Vec<_> = pages
-                        .into_iter()
-                        .filter(|page| {
-                            if search_term.is_empty() {
-                                true
-                            } else {
-                                page.title.to_lowercase().contains(&search_term)
-                                    || page
-                                        .tags
-                                        .iter()
-                                        .any(|tag| tag.to_lowercase().contains(&search_term))
-                            }
-                        })
-                        .take(15)
-                        .collect();
-
-                    RVec::from(
-                        filtered_pages
-                            .into_iter()
-                            .map(|page| {
-                                let desc = if page.tags.is_empty() {
-                                    RNone
-                                } else {
-                                    RSome(RString::from(format!("Tags: {}", page.tags.join(", "))))
-                                };
-
-                                FResult {
-                                    cmd: ApplicationCommand::Command(RString::from(format!(
-                                        "open 'logseq://graph/illef2?page={}'",
-                                        page.uuid
-                                    ))),
-                                    icon: RString::from("📄"),
-                                    score: isize::MAX,
-                                    name: RString::from(page.title),
-                                    desc,
-                                }
-                            })
-                            .collect::<Vec<_>>(),
-                    )
-                }
-                Err(e) => RVec::from(vec![FResult {
-                    cmd: ApplicationCommand::Command(RString::from("echo 'Error occurred'")),
-                    icon: RString::from("❌"),
-                    score: isize::MAX,
-                    name: RString::from(format!("Error: {}", e)),
-                    desc: RNone,
-                }]),
-            }
-        }
+        Err(_) => RVec::new(),
     }
 }
 
