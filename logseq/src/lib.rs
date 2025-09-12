@@ -82,12 +82,14 @@ fn handle_query(query: RStr) -> RVec<FResult> {
                             ))
                         };
 
+                        let icon = get_icon_for_tags(&page.tags);
+
                         FResult {
                             cmd: ApplicationCommand::Command(RString::from(format!(
                                 "bash -c 'xdg-open logseq://graph/illef2?page={}'",
                                 page.uuid
                             ))),
-                            icon: RString::from("logseq"),
+                            icon: RString::from(icon),
                             score: isize::MAX,
                             name: RString::from(page.title),
                             desc,
@@ -98,6 +100,44 @@ fn handle_query(query: RStr) -> RVec<FResult> {
         }
         Err(_) => RVec::new(),
     }
+}
+
+fn get_icon_for_tags(tags: &[String]) -> &'static str {
+    // Prioritize tags by specificity, returning the first matching icon
+    for tag in tags {
+        match tag.as_str() {
+            "글감" => return "typewriter",
+            "book" | "tech-book" | "bookReview" => return "fbreader",
+            "term" => return "dictionary",
+            "Code" | "tech" => return "format-text-code",
+            "Math" => return "math0",
+            "movie" => return "video-x-generic-symbolic",
+            "video" => return "video-x-generic-symbolic",
+            "lecture" => return "audio-x-generic-symbolic",
+            "project" | "project-item" => return "folder-yellow",
+            "person" => return "im-user",
+            "news" => return "news-subscribe",
+            "app" => return "application-x-generic",
+            "note" | "notes" => return "keep",
+            "comment" => return "text-x-generic",
+            "chat" => return "text-x-generic",
+            "english" => return "text-x-generic",
+            "post" => return "artistictext-tool",
+            "Query" => return "system-search",
+            "Task" | "GTD" | "GTD-PROJECT" => return "gnome-todo",
+            "Card" | "Cards" => return "text-x-generic",
+            "Quote" => return "text-x-generic",
+            "Journal" => return "text-x-generic",
+            "Template" => return "folder-templates",
+            "Asset" => return "package-x-generic",
+            "Whiteboard" => return "image-x-generic",
+            "magazineArticle" => return "news-subscribe",
+            _ => continue,
+        }
+    }
+
+    // Default fallback icon
+    "logseq"
 }
 
 define_plugin!("logseq!", init, handle_query);
