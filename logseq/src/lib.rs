@@ -72,14 +72,14 @@ fn handle_query(query: RStr) -> RVec<FResult> {
                         let desc = if page.tags.is_empty() {
                             RNone
                         } else {
-                            RSome(RString::from(format!(
-                                "Tags: {}",
+                            RSome(RString::from(
                                 page.tags
                                     .iter()
-                                    .map(|tag| tag.to_string())
+                                    .filter(|tag| tag != &"Page")
+                                    .map(|tag| format!("#{}", tag))
                                     .collect::<Vec<String>>()
-                                    .join(", ")
-                            )))
+                                    .join(" "),
+                            ))
                         };
 
                         FResult {

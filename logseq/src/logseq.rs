@@ -4,6 +4,8 @@ use std::process::Command;
 
 #[derive(Debug, Deserialize, Serialize)]
 pub struct LogseqBlock {
+    #[serde(rename = "db/id")]
+    pub id: Option<i64>,
     #[serde(rename = "block/title")]
     pub title: Option<String>,
     #[serde(rename = "block/uuid")]
@@ -40,6 +42,11 @@ pub fn get_logseq_pages() -> Result<Vec<LogseqPage>, String> {
     let blocks: Vec<LogseqBlock> =
         serde_json::from_str(&json_str).map_err(|e| format!("Failed to parse JSON: {}", e))?;
 
+    let tag_blocks = match get_logseq_tag_blocks() {
+        Ok(blocks) => blocks,
+        Err(_) => Vec::new(),
+    };
+
     let pages: Vec<LogseqPage> = blocks
         .into_iter()
         .map(|block| {
@@ -49,7 +56,14 @@ pub fn get_logseq_pages() -> Result<Vec<LogseqPage>, String> {
                 .tags
                 .unwrap_or_default()
                 .into_iter()
-                .filter_map(|tag_ref| tag_ref.id)
+                .filter_map(|tag_ref| {
+                    tag_ref.id.and_then(|id| {
+                        tag_blocks
+                            .iter()
+                            .find(|tag_block| tag_block.id == Some(id))
+                            .and_then(|tag_block| tag_block.title.clone())
+                    })
+                })
                 .collect();
 
             LogseqPage {
@@ -62,4 +76,27 @@ pub fn get_logseq_pages() -> Result<Vec<LogseqPage>, String> {
         .collect();
 
     Ok(pages)
+}
+
+pub fn get_logseq_tag_blocks() -> Result<Vec<LogseqBlock>, String> {
+    let output = Command::new("bash")
+        .arg("-c")
+        .arg("npx @logseq/cli query illef2 '[:find (pull ?b [:db/id :block/title]) :where [?tag :db/ident :logseq.class/Tag] [?b :block/tags ?tag]]' | jet --to json")
+        .output()
+        .map_err(|e| format!("Failed to execute command: {}", e))?;
+
+    if !output.status.success() {
+        return Err(format!(
+            "Command failed: {}",
+            String::from_utf8_lossy(&output.stderr)
+        ));
+    }
+
+    let json_str =
+        String::from_utf8(output.stdout).map_err(|e| format!("Invalid UTF-8 in output: {}", e))?;
+
+    let blocks: Vec<LogseqBlock> =
+        serde_json::from_str(&json_str).map_err(|e| format!("Failed to parse JSON: {}", e))?;
+
+    Ok(blocks)
 }

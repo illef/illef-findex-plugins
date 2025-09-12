@@ -10,7 +10,7 @@ use ureq::serde_json;
 pub struct LogseqPage {
     pub title: String,
     pub uuid: String,
-    pub tags: Vec<i64>,
+    pub tags: Vec<String>,
     pub updated_at: Option<i64>,
 }
 
