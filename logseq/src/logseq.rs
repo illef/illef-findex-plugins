@@ -49,7 +49,7 @@ pub fn get_logseq_pages() -> Result<Vec<LogseqPage>, String> {
                 .tags
                 .unwrap_or_default()
                 .into_iter()
-                .filter_map(|tag_ref| tag_ref.id.map(|id| format!("tag-{}", id)))
+                .filter_map(|tag_ref| tag_ref.id)
                 .collect();
 
             LogseqPage {

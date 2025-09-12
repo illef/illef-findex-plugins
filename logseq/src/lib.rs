@@ -59,7 +59,7 @@ fn handle_query(query: RStr) -> RVec<FResult> {
                             || page
                                 .tags
                                 .iter()
-                                .any(|tag| tag.to_lowercase().contains(&search_term))
+                                .any(|tag| tag.to_string().to_lowercase().contains(&search_term))
                     }
                 })
                 .take(15)
@@ -72,7 +72,14 @@ fn handle_query(query: RStr) -> RVec<FResult> {
                         let desc = if page.tags.is_empty() {
                             RNone
                         } else {
-                            RSome(RString::from(format!("Tags: {}", page.tags.join(", "))))
+                            RSome(RString::from(format!(
+                                "Tags: {}",
+                                page.tags
+                                    .iter()
+                                    .map(|tag| tag.to_string())
+                                    .collect::<Vec<String>>()
+                                    .join(", ")
+                            )))
                         };
 
                         FResult {
