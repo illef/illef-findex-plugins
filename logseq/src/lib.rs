@@ -43,7 +43,7 @@ fn get_logseq_pages() -> Result<Vec<LogseqPage>, String> {
     let blocks: Vec<LogseqBlock> =
         serde_json::from_str(&json_str).map_err(|e| format!("Failed to parse JSON: {}", e))?;
 
-    let pages = blocks
+    let mut pages: Vec<LogseqPage> = blocks
         .into_iter()
         .map(|block| {
             let title = block.title.unwrap_or_else(|| "Untitled".to_string());
@@ -58,6 +58,10 @@ fn get_logseq_pages() -> Result<Vec<LogseqPage>, String> {
             LogseqPage { title, uuid, tags }
         })
         .collect();
+
+    use rand::rng;
+    use rand::seq::SliceRandom;
+    pages.shuffle(&mut rng());
 
     Ok(pages)
 }
