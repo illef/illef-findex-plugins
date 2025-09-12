@@ -11,6 +11,7 @@ pub struct LogseqPage {
     pub title: String,
     pub uuid: String,
     pub tags: Vec<String>,
+    pub updated_at: Option<i64>,
 }
 
 #[derive(Error, Debug)]

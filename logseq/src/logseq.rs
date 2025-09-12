@@ -10,6 +10,8 @@ pub struct LogseqBlock {
     pub uuid: Option<String>,
     #[serde(rename = "block/tags")]
     pub tags: Option<Vec<TagRef>>,
+    #[serde(rename = "block/updated-at")]
+    pub updated_at: Option<i64>,
 }
 
 #[derive(Debug, Deserialize, Serialize)]
@@ -21,7 +23,7 @@ pub struct TagRef {
 pub fn get_logseq_pages() -> Result<Vec<LogseqPage>, String> {
     let output = Command::new("bash")
         .arg("-c")
-        .arg("npx @logseq/cli query illef2 '[:find (pull ?b [:block/tags :block/uuid :block/title]) :where [?tag :block/name \"page\"] [?b :block/tags ?tag]]' | jet --to json")
+        .arg("npx @logseq/cli query illef2 '[:find (pull ?b [:block/tags :block/uuid :block/title :block/updated-at]) :where [?tag :block/name \"page\"] [?b :block/tags ?tag]]' | jet --to json")
         .output()
         .map_err(|e| format!("Failed to execute command: {}", e))?;
 
@@ -50,13 +52,37 @@ pub fn get_logseq_pages() -> Result<Vec<LogseqPage>, String> {
                 .filter_map(|tag_ref| tag_ref.id.map(|id| format!("tag-{}", id)))
                 .collect();
 
-            LogseqPage { title, uuid, tags }
+            LogseqPage {
+                title,
+                uuid,
+                tags,
+                updated_at: block.updated_at,
+            }
         })
         .collect();
 
+    // Sort pages by updated_at in descending order (most recent first)
+    pages.sort_by(|a, b| match (a.updated_at, b.updated_at) {
+        (Some(a_time), Some(b_time)) => b_time.cmp(&a_time),
+        (Some(_), None) => std::cmp::Ordering::Less,
+        (None, Some(_)) => std::cmp::Ordering::Greater,
+        (None, None) => std::cmp::Ordering::Equal,
+    });
+
+    // Take top 5 most recently updated pages and shuffle the rest
+    let pages_len = pages.len();
+    let split_index = if pages_len > 5 { 5 } else { pages_len };
+
+    let (recent_pages, remaining_pages) = pages.split_at_mut(split_index);
+
+    // Shuffle the remaining pages
     use rand::rng;
     use rand::seq::SliceRandom;
-    pages.shuffle(&mut rng());
+    remaining_pages.shuffle(&mut rng());
 
-    Ok(pages)
+    // Combine recent pages (first 5) with shuffled remaining pages
+    let mut result = recent_pages.to_vec();
+    result.extend_from_slice(remaining_pages);
+
+    Ok(result)
 }
