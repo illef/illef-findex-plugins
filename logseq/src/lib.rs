@@ -2,7 +2,7 @@ mod cache;
 mod logseq;
 
 use abi_stable::std_types::*;
-use cache::FilePageCache;
+use cache::{FilePageCache, LogseqTag};
 use findex_plugin::{define_plugin, ApplicationCommand, FResult};
 use rand::rng;
 use rand::seq::SliceRandom;
@@ -56,10 +56,9 @@ fn handle_query(query: RStr) -> RVec<FResult> {
                         true
                     } else {
                         page.title.to_lowercase().contains(&search_term)
-                            || page
-                                .tags
-                                .iter()
-                                .any(|tag| tag.to_string().to_lowercase().contains(&search_term))
+                            || page.tags.iter().any(|tag| {
+                                tag.name.to_string().to_lowercase().contains(&search_term)
+                            })
                     }
                 })
                 .take(15)
@@ -75,8 +74,8 @@ fn handle_query(query: RStr) -> RVec<FResult> {
                             RSome(RString::from(
                                 page.tags
                                     .iter()
-                                    .filter(|tag| tag != &"Page")
-                                    .map(|tag| format!("#{}", tag))
+                                    .filter(|tag| &tag.name != &"Page")
+                                    .map(|tag| format!("#{}", tag.name))
                                     .collect::<Vec<String>>()
                                     .join(" "),
                             ))
@@ -102,42 +101,24 @@ fn handle_query(query: RStr) -> RVec<FResult> {
     }
 }
 
-fn get_icon_for_tags(tags: &[String]) -> &'static str {
-    // Prioritize tags by specificity, returning the first matching icon
-    for tag in tags {
-        match tag.as_str() {
-            "글감" => return "typewriter",
-            "book" | "tech-book" | "bookReview" => return "fbreader",
-            "term" => return "dictionary",
-            "Code" | "tech" => return "format-text-code",
-            "Math" => return "math0",
-            "movie" => return "video-x-generic-symbolic",
-            "video" => return "video-x-generic-symbolic",
-            "lecture" => return "audio-x-generic-symbolic",
-            "project" | "project-item" => return "folder-yellow",
-            "person" => return "im-user",
-            "news" => return "news-subscribe",
-            "app" => return "application-x-generic",
-            "note" | "notes" => return "keep",
-            "comment" => return "text-x-generic",
-            "chat" => return "text-x-generic",
-            "english" => return "text-x-generic",
-            "post" => return "artistictext-tool",
-            "Query" => return "system-search",
-            "Task" | "GTD" | "GTD-PROJECT" => return "gnome-todo",
-            "Card" | "Cards" => return "text-x-generic",
-            "Quote" => return "text-x-generic",
-            "Journal" => return "text-x-generic",
-            "Template" => return "folder-templates",
-            "Asset" => return "package-x-generic",
-            "Whiteboard" => return "image-x-generic",
-            "magazineArticle" => return "news-subscribe",
-            _ => continue,
+fn get_icon_for_tags(tags: &[LogseqTag]) -> String {
+    if let Some(tag) = tags.iter().find(|t| t.name != "Task" && t.name != "Page") {
+        if let Some(icon) = &tag.icon {
+            if icon.icon_type == "emoji" {
+                if let Some(emoji) = emojis::get_by_shortcode(&icon.id) {
+                    return format!("emoji:{}", emoji.as_str());
+                }
+            }
         }
     }
 
-    // Default fallback icon
-    "logseq"
+    if tags
+        .iter()
+        .any(|tag| matches!(tag.name.as_str(), "Task" | "GTD" | "GTD-PROJECT"))
+    {
+        return "gnome-todo".to_string();
+    }
+    "emoji:📝".to_string()
 }
 
 define_plugin!("logseq!", init, handle_query);

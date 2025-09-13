@@ -1,4 +1,4 @@
-use crate::cache::LogseqPage;
+use crate::cache::{LogseqIcon, LogseqPage, LogseqTag};
 use serde::{Deserialize, Serialize};
 use std::process::Command;
 
@@ -14,6 +14,8 @@ pub struct LogseqBlock {
     pub tags: Option<Vec<TagRef>>,
     #[serde(rename = "block/updated-at")]
     pub updated_at: Option<i64>,
+    #[serde(rename = "logseq.property/icon")]
+    pub icon: Option<LogseqIcon>,
 }
 
 #[derive(Debug, Deserialize, Serialize)]
@@ -61,7 +63,10 @@ pub fn get_logseq_pages() -> Result<Vec<LogseqPage>, String> {
                         tag_blocks
                             .iter()
                             .find(|tag_block| tag_block.id == Some(id))
-                            .and_then(|tag_block| tag_block.title.clone())
+                            .map(|tag_block| LogseqTag {
+                                name: tag_block.title.clone().unwrap_or_default(),
+                                icon: tag_block.icon.clone(),
+                            })
                     })
                 })
                 .collect();
@@ -81,7 +86,7 @@ pub fn get_logseq_pages() -> Result<Vec<LogseqPage>, String> {
 pub fn get_logseq_tag_blocks() -> Result<Vec<LogseqBlock>, String> {
     let output = Command::new("bash")
         .arg("-c")
-        .arg("npx @logseq/cli query illef2 '[:find (pull ?b [:db/id :block/title]) :where [?tag :db/ident :logseq.class/Tag] [?b :block/tags ?tag]]' | jet --to json")
+        .arg("npx @logseq/cli query illef2 '[:find (pull ?b [:db/id :block/title :logseq.property/icon]) :where [?tag :db/ident :logseq.class/Tag] [?b :block/tags ?tag]]' | jet --to json")
         .output()
         .map_err(|e| format!("Failed to execute command: {}", e))?;
 

@@ -7,10 +7,24 @@ use thiserror::Error;
 use ureq::serde_json;
 
 #[derive(Debug, Deserialize, Serialize, Clone, PartialEq)]
+pub struct LogseqIcon {
+    #[serde(rename = "type")]
+    pub icon_type: String,
+    pub id: String,
+    pub color: Option<String>,
+}
+
+#[derive(Debug, Deserialize, Serialize, Clone, PartialEq)]
+pub struct LogseqTag {
+    pub name: String,
+    pub icon: Option<LogseqIcon>,
+}
+
+#[derive(Debug, Deserialize, Serialize, Clone, PartialEq)]
 pub struct LogseqPage {
     pub title: String,
     pub uuid: String,
-    pub tags: Vec<String>,
+    pub tags: Vec<LogseqTag>,
     pub updated_at: Option<i64>,
 }
 
