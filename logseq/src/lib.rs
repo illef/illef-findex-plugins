@@ -102,7 +102,23 @@ fn handle_query(query: RStr) -> RVec<FResult> {
 }
 
 fn get_icon_for_tags(tags: &[LogseqTag]) -> String {
-    if let Some(tag) = tags.iter().find(|t| t.name != "Task" && t.name != "Page") {
+    if let Some(tag) = tags
+        .iter()
+        .filter(|t| {
+            let excluded = [
+                "Task",
+                "Page",
+                "DONE",
+                "TODAY",
+                "INBOX",
+                "SOMEDAY",
+                "DELEGATE",
+                "GTD-PROJECT",
+            ];
+            !excluded.contains(&t.name.as_str())
+        })
+        .next()
+    {
         if let Some(icon) = &tag.icon {
             if icon.icon_type == "emoji" {
                 if let Some(emoji) = emojis::get_by_shortcode(&icon.id) {
