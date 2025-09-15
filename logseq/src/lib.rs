@@ -16,7 +16,7 @@ fn init(_: &RHashMap<RString, RString>) -> RResult<(), RString> {
                 eprintln!("Failed to update logseq cache: {}", e);
             }
         }
-        thread::sleep(Duration::from_secs(60 * 5));
+        thread::sleep(Duration::from_secs(60));
     });
 
     ROk(())
