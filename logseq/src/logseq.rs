@@ -27,7 +27,7 @@ pub struct TagRef {
 pub fn get_logseq_pages() -> Result<Vec<LogseqPage>, String> {
     let output = Command::new("bash")
         .arg("-c")
-        .arg("npx @logseq/cli query illef2 '[:find (pull ?b [:block/tags :block/uuid :block/title :block/updated-at]) :where [?tag :block/name \"page\"] [?b :block/tags ?tag]]' | jet --to json")
+        .arg("npx @logseq/cli query illef '[:find (pull ?b [:block/tags :block/uuid :block/title :block/updated-at]) :where [?tag :block/name \"page\"] [?b :block/tags ?tag]]' | jet --to json")
         .output()
         .map_err(|e| format!("Failed to execute command: {}", e))?;
 
@@ -86,7 +86,7 @@ pub fn get_logseq_pages() -> Result<Vec<LogseqPage>, String> {
 pub fn get_logseq_tag_blocks() -> Result<Vec<LogseqBlock>, String> {
     let output = Command::new("bash")
         .arg("-c")
-        .arg("npx @logseq/cli query illef2 '[:find (pull ?b [:db/id :block/title :logseq.property/icon]) :where [?tag :db/ident :logseq.class/Tag] [?b :block/tags ?tag]]' | jet --to json")
+        .arg("npx @logseq/cli query illef '[:find (pull ?b [:db/id :block/title :logseq.property/icon]) :where [?tag :db/ident :logseq.class/Tag] [?b :block/tags ?tag]]' | jet --to json")
         .output()
         .map_err(|e| format!("Failed to execute command: {}", e))?;
 

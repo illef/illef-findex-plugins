@@ -85,7 +85,7 @@ fn handle_query(query: RStr) -> RVec<FResult> {
 
                         FResult {
                             cmd: ApplicationCommand::Command(RString::from(format!(
-                                "bash -c 'xdg-open logseq://graph/illef2?block-id={}'",
+                                "bash -c 'xdg-open logseq://graph/illef?block-id={}'",
                                 page.uuid
                             ))),
                             icon: RString::from(icon),
